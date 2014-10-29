@@ -5,7 +5,7 @@ class page {
     public $scripts;
     public $template;
 
-    public __construct() {
+    public function __construct() {
         $this->styles = array();
         $this->scripts = array();
         $this->template = "default.php";
