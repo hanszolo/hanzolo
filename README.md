@@ -1,4 +1,4 @@
 hanzolo
 =======
 
-public repo for hanzolo.com
+public repo for [hanzolo.com](http://www.hanzolo.com)
