@@ -1,4 +1,7 @@
-<?php
-  //Ensure php is enabled
-  echo "<body>My body is ready</body>";
-?>
+<html>
+<head>
+</head>
+<body>
+<?= "My Body is Ready" ?>
+</body>
+</html>
