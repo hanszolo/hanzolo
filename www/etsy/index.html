@@ -1,0 +1,56 @@
+<html>
+<head>
+	<title>Etsy Top Terms</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	<script type="text/javascript">
+		function submit() {
+			var limit = $('#limit').val();
+			var shopName = $('#shop').val();
+			$.ajax({
+  				type: "POST",
+  				url: "api/terms.php",
+  				data: {
+  					limit: $('#limit').val(),
+  					shop: $('#shop').val()
+  				},
+  				success: function (data) {
+  					if (!data.success) {
+  						alert(data.error);
+  					}
+  					$('#resultsTable').css('display', 'block');
+  					var new_row = [
+  						"<tr>",
+  							"<td>",
+  								$('#shop').val(),
+  							"</td>",
+  							"<td>",
+  								$('#limit').val(),
+  							"</td>",
+  							"<td>",
+  								Object.keys(data.data).join(", "),
+  							"</td>",
+  						"</tr>"
+  					];
+  					$('#resultsTable tr:first').after(new_row.join("\n"));
+  				}
+			});
+		}
+	</script>
+</head>
+<body>
+	<div>Number of Terms <input type="number" min="0" id="limit" value="10"/></div>
+	<div>Etsy Shop Name</div>
+	<div><input type="text" id="shop" size=100 value="greywombat"/></div>
+	<div><input type="submit" id="submit" onclick="submit()"/></div>
+	<hr/>
+	<table style="display:none" id="resultsTable">
+		<tr>
+			<th>Shop Name</th>
+			<th>Number of Terms</th>
+			<th>Top Terms</th>
+		</tr>
+	</table>
+</body>
+</html>
