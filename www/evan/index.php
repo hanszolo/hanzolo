@@ -3,7 +3,7 @@ $now = new DateTime();
 $then = new DateTime('2014-11-29 17:05:00');
 $interval = $now->diff($then);
 $hours = ($interval->invert ? -1 : 1) * (24 * $interval->days + $interval->h + ($interval->i / 60) + ($interval->s / 60 / 60));
-if (!$_GET['statham'] && $hours < 24 && $hours > -24) {
+if (!isset($_GET['statham']) && $hours < 24 && $hours > -24) {
     $curl = curl_init();
     curl_setopt_array($curl, array(
         CURLOPT_URL => "https://api.ba.com/rest-v1/v1/flights;flightNumber=191;scheduledArrivalDate=2014-11-29.json",
@@ -21,7 +21,7 @@ if (!$_GET['statham'] && $hours < 24 && $hours > -24) {
         $hours = ($interval->invert ? -1 : 1) * (24 * $interval->days + $interval->h + ($interval->i / 60) + ($interval->s / 60 / 60));
     }
 }
-$hours = $_GET['statham'] ?: $hours;
+$hours = isset($_GET['statham']) ? $_GET['statham'] : $hours;
 ?>
 <html>
 <head>

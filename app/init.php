@@ -4,6 +4,6 @@ spl_autoload_register(function ($name) {
     if (file_exists($filename)) {
        require_once($filename);
     } else {
-        die("$name not found");
+        die("$name not found"); #do something less dumb
     }
 });
