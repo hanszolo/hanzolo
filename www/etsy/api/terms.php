@@ -1,8 +1,15 @@
 <?
+require_once "wordutils.php";
 define("ETSY_API_KEY", "criutu6fkg9avxuyqd35l1pg");
 
-$stopWords = ["and", "of", "if", "the", "so", "it", "in", "i", "has", "had", "for", "to", "too", "but", "by", "do", "did"];
-
+/**
+ * This function is here so I don't keep having to check array_key_exists
+ * @param array $array
+ * @param mixed $path
+ * @param mixed $defaultValue
+ * @return safeArrayAccess($array, ['a', 'b'], FALSE);
+ * 		will return $array['a']['b'] if it exists, otherwise it'll return FALSE
+ */
 function safeArrayAccess($array, $path = [], $defaultValue = NULL) {
 	if (!is_array($path)) {
 		$path = [$path];
@@ -72,21 +79,60 @@ function getStoreListings($shopName) {
 
 function getTermHistogram($listings) {
 	$histogram = [];
+	$coefficients = [
+		'title' => 3,
+		'description' => 1,
+	];
 	foreach ($listings as $listing) {
-		foreach (['title', 'description'] as $field) {
+		foreach ($coefficients as $field => $weight) {
+			$localHistogram = [];
 			$string = trim(urldecode(safeArrayAccess($listing, $field)));
 			if (!$string) {
 				continue;
 			}
+
 			foreach (preg_split('/\s+/', $string) as $token) {
-				$histogram[$token] = safeArrayAccess($histogram, $token) + 1;
+				$token = cleanUp($token);
+				$canonized = canonize($token);
+				if (!$canonized) {
+					continue;
+				}
+				if (stopword($canonized)) {
+					continue;
+				}
+
+				$localHistogram[$canonized] = [
+					'original' => $token,
+					'score' => safeArrayAccess($histogram, [$canonized, 'score'], 0) + $weight,
+				];
+			}
+
+			foreach($localHistogram as $canonized => $values) {
+				$values['score'] /= sqrt(count($localHistogram) + 10);
+				if (!isset($histogram[$canonized])) {
+					$histogram[$canonized] = $values;
+				} else {
+					$histogram[$canonized]['score'] += $values['score'];
+				}
 			}
 		}
 	}
 	uasort($histogram, function ($a, $b) {
-		return intval($b) - intval($a);
+		return intval($b['score']) - intval($a['score']);
 	});
 	return $histogram;
+}
+
+function formatHistogram($histogram, $limit) {
+	$results = [];
+	foreach ($histogram as $canonized => $values) {
+		$results[$values['original']] = $values['score'];
+		$limit--;
+		if ($limit <= 0) {
+			break;
+		}
+	}
+	return $results;
 }
 
 $limit = safeArrayAccess($_REQUEST, 'limit');
@@ -99,7 +145,7 @@ if (!$shop) {
 
 $listings = getStoreListings($shop);
 $histogram = getTermHistogram($listings);
-$topTerms = array_slice($histogram, 0, $limit);
+$topTerms = formatHistogram($histogram, $limit);
 
 header('Content-Type: application/json');
 echo json_encode([
